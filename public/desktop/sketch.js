@@ -1,33 +1,30 @@
 let socket;
-let circleX = 200;
-let circleY = 200;
-const port = 3000;
-
+let cloudX = 200;
+let cloudY = 200;
+let isDrawing = false;
+let clouds = [];
 
 function setup() {
     createCanvas(400, 400);
     background(220);
 
-    //let socketUrl = 'http://localhost:3000';
-    let socketUrl = 'https://supreme-space-eureka-x9wpv75jjpf6gpv-3000.app.github.dev/';
-    socket = io(socketUrl); 
+    let socketUrl = 'https://ancient-ghost-4jgrwwppvg472j79r-3000.app.github.dev/';
+    socket = io(socketUrl);
 
-    // Evento de conexión exitosa
     socket.on('connect', () => {
         console.log('Connected to server');
     });
 
-    // Recibir mensaje del servidor
     socket.on('message', (data) => {
-        console.log(`Received message: ${data}`);
         let parsedData = JSON.parse(data);
         if (parsedData.type === 'touch') {
-            circleX = parsedData.x;
-            circleY = parsedData.y;
+            cloudX = parsedData.x;
+            cloudY = parsedData.y;
+        } else if (parsedData.type === 'draw') {
+            clouds.push(parsedData);
         }
-    });    
+    });
 
-    // Evento de desconexión
     socket.on('disconnect', () => {
         console.log('Disconnected from server');
     });
@@ -39,6 +36,21 @@ function setup() {
 
 function draw() {
     background(220);
-    fill(255, 0, 0);
-    ellipse(circleX, circleY, 50, 50);
+    drawCloud(cloudX, cloudY); // Dibuja la nube que sigue al dedo
+
+    // Dibujar nubes en el camino
+    for (let cloud of clouds) {
+        drawCloud(cloud.x, cloud.y, cloud.size);
+    }
+}
+
+// Función para dibujar una nube
+function drawCloud(x, y, size = 20) {
+    fill(255);
+    noStroke();
+    ellipse(x, y, size, size / 2);
+    ellipse(x - size / 4, y, size / 1.5, size / 3);
+    ellipse(x + size / 4, y, size / 1.5, size / 3);
+    ellipse(x - size / 2, y - size / 5, size / 1.5, size / 3);
+    ellipse(x + size / 2, y - size / 5, size / 1.5, size / 3);
 }
